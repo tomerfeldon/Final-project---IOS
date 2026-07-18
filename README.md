@@ -4,7 +4,7 @@ A running tracker for iOS. Start a run and watch your time and distance climb
 live from GPS, save it when you are done, and browse every run you have logged.
 
 Built with **UIKit + Storyboard**, **Swift**, targeting **iOS 15+**, and backed
-by **two Firebase databases** — Cloud Firestore for permanent run history and
+by **two Firebase databases** - Cloud Firestore for permanent run history and
 the Realtime Database for the live, in-progress session.
 
 > [!NOTE]
@@ -13,20 +13,20 @@ the Realtime Database for the live, in-progress session.
 
 ## Features
 
-- **Live run tracking** — elapsed time updated every second by a `Timer`, and
+- **Live run tracking** - elapsed time updated every second by a `Timer`, and
   cumulative distance computed from GPS with jitter and teleport filtering.
-- **Start / Pause / Stop** — pause and resume freely; Stop asks before saving.
-- **Permanent history** — every finished run is stored in Firestore and shown in
+- **Start / Pause / Stop** - pause and resume freely; Stop asks before saving.
+- **Permanent history** - every finished run is stored in Firestore and shown in
   a table with a custom cell (date, distance, duration, average pace).
-- **Live listener** — the list updates itself the instant a run is saved,
+- **Live listener** - the list updates itself the instant a run is saved,
   deleted, or edited, with no manual refresh.
-- **Run details** — a full breakdown per run, a map with start/finish pins, and
+- **Run details** - a full breakdown per run, a map with start/finish pins, and
   an editable free-text note saved back to Firestore.
-- **Resume a run** — if the app is closed mid-run, it offers to pick the run
+- **Resume a run** - if the app is closed mid-run, it offers to pick the run
   back up on next launch, restored from the Realtime Database.
-- **Light / Dark toggle** — a one-tap switch in the navigation bar, remembered
+- **Light / Dark toggle** - a one-tap switch in the navigation bar, remembered
   between launches, on top of full system-appearance support.
-- **Rotation** — every screen lays out correctly in portrait and landscape via
+- **Rotation** - every screen lays out correctly in portrait and landscape via
   Auto Layout and stack views.
 
 ## Screens
@@ -43,7 +43,7 @@ the Realtime Database for the live, in-progress session.
 - **UI:** UIKit + Storyboard, Auto Layout (stack-view based)
 - **Location:** Core Location (`CLLocationManager`)
 - **Maps:** MapKit (`MKMapView`)
-- **Backend:** Firebase — `FirebaseCore`, `FirebaseFirestore`, `FirebaseDatabase`
+- **Backend:** Firebase - `FirebaseCore`, `FirebaseFirestore`, `FirebaseDatabase`
 - **Dependencies:** Swift Package Manager
 - **Minimum iOS:** 15.0
 
@@ -81,7 +81,7 @@ custom cell and its controller uses the delegate/protocol pattern
 
 ## Getting started
 
-You need a **Mac with Xcode**. The steps below have a hard ordering — read the
+You need a **Mac with Xcode**. The steps below have a hard ordering - read the
 callouts.
 
 ### Prerequisites
@@ -94,7 +94,7 @@ callouts.
 > [!IMPORTANT]
 > Create **both** databases **before** you register the iOS app. The
 > `DATABASE_URL` key is only written into `GoogleService-Info.plist` if the
-> Realtime Database already exists — otherwise the app fails at runtime in a way
+> Realtime Database already exists - otherwise the app fails at runtime in a way
 > that looks like a code bug.
 
 1. **Add project** → name it `RunTracker` (Google Analytics not needed).
@@ -105,14 +105,14 @@ callouts.
 
 > [!NOTE]
 > Test mode leaves both databases open and its rules expire after 30 days. That
-> is fine for coursework — if reads start failing weeks later, this is why.
+> is fine for coursework - if reads start failing weeks later, this is why.
 
 ### 2. Xcode project
 
 1. **File → New → Project → iOS → App.** Product Name `RunTracker`, Interface
    **Storyboard**, Language **Swift**, bundle ID `com.tomer.RunTracker`. Set the
    deployment target to **iOS 15.0**.
-2. **Delete the template files first** — this repo ships its own. Select and
+2. **Delete the template files first** - this repo ships its own. Select and
    **Move to Trash**: `AppDelegate.swift`, `SceneDelegate.swift`,
    `ViewController.swift`, `Main.storyboard`, `LaunchScreen.storyboard`,
    `Assets.xcassets`. Leaving them causes `invalid redeclaration` errors.
@@ -124,12 +124,12 @@ callouts.
    > [!WARNING]
    > Add the two storyboards as **individual files**, not by dragging the whole
    > `Base.lproj` folder. A new project already has a `Base.lproj`, and dragging
-   > another one in creates a stray `Base 2.lproj` that the app cannot find —
+   > another one in creates a stray `Base 2.lproj` that the app cannot find -
    > you will get a runtime crash `Could not find a storyboard named 'Main'`.
    > Drag `Main.storyboard` and `LaunchScreen.storyboard` in on their own.
 
 4. Drag your real `GoogleService-Info.plist` in (target checked). Do **not**
-   rename `GoogleService-Info.SAMPLE.plist` — it is a reference only.
+   rename `GoogleService-Info.SAMPLE.plist` - it is a reference only.
 5. **File → Add Package Dependencies** → `https://github.com/firebase/firebase-ios-sdk`.
    Add exactly `FirebaseCore`, `FirebaseFirestore`, `FirebaseDatabase`.
 
@@ -138,7 +138,7 @@ callouts.
    > will fail to resolve. In the Add Package dialog set the Dependency Rule to
    > **Up to Next Major Version** from **11.0.0** to pull a Firebase 11.x
    > release. The APIs used here are identical. When picking products, set every
-   > product except the three above to **None** (the list scrolls — the three
+   > product except the three above to **None** (the list scrolls - the three
    > are below the `FirebaseAnalytics*` entries).
 
 6. **Target → Info** → add **Privacy - Location When In Use Usage Description**
@@ -157,7 +157,7 @@ callouts.
 
 The point of the project is using each database for what it is good at.
 
-**Cloud Firestore** — permanent, queryable run history:
+**Cloud Firestore** - permanent, queryable run history:
 
 ```
 runs/
@@ -167,9 +167,9 @@ runs/
 ```
 
 Read with `addSnapshotListener`, so the list re-renders the moment anything
-changes — no manual refresh, one source of truth.
+changes - no manual refresh, one source of truth.
 
-**Realtime Database** — the live session only, while a run is in progress:
+**Realtime Database** - the live session only, while a run is in progress:
 
 ```
 activeRun/
