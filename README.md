@@ -1,5 +1,7 @@
 # 🏃 RunTracker
 
+*[עברית](README.he.md)*
+
 A running tracker for iOS. Start a run and watch your time and distance climb
 live from GPS, save it when you are done, and browse every run you have logged.
 
