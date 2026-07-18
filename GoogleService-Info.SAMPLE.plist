@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  This is a SAMPLE showing the shape of the real file. It is deliberately named
+  GoogleService-Info.SAMPLE.plist so Firebase will NOT pick it up - do not rename it.
+
+  Replace it by downloading the real GoogleService-Info.plist from the Firebase
+  console (see README.md) and dragging that into the Xcode project.
+
+  Check DATABASE_URL is present in your downloaded file. It only gets written in
+  if you created the Realtime Database BEFORE registering the iOS app. If it is
+  missing, create the RTDB in the console and download the plist again.
+-->
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>REPLACE_ME</string>
+	<key>GCM_SENDER_ID</key>
+	<string>REPLACE_ME</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.tomer.RunTracker</string>
+	<key>PROJECT_ID</key>
+	<string>REPLACE_ME</string>
+	<key>STORAGE_BUCKET</key>
+	<string>REPLACE_ME.appspot.com</string>
+	<key>DATABASE_URL</key>
+	<string>https://REPLACE_ME-default-rtdb.firebaseio.com</string>
+	<key>GOOGLE_APP_ID</key>
+	<string>REPLACE_ME</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+</dict>
+</plist>

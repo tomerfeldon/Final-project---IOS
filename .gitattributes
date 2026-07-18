@@ -1,0 +1,9 @@
+# Normalize line endings to LF for everything. This repo is authored on Windows
+# but built on macOS, and LF keeps the Swift and storyboard files clean there.
+* text=auto eol=lf
+
+# Xcode's own formats stay LF too.
+*.pbxproj text eol=lf
+*.storyboard text eol=lf
+*.xib text eol=lf
+*.plist text eol=lf
