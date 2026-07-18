@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏃 RunTracker
+#  RunTracker
 
 **A running tracker for iOS. Start a run, watch time and distance climb live from GPS, save it, and browse your history.**
 
