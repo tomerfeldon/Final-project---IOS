@@ -33,6 +33,11 @@ class RunLocationTracker: NSObject {
     /// Movement smaller than this is treated as jitter, not progress.
     private static let minimumMovement: CLLocationDistance = 3
 
+    /// A fix implying a speed faster than this (metres/second) between updates is
+    /// treated as a GPS glitch or a simulator teleport, not real running. ~12 m/s
+    /// is well above any running pace but rejects multi-kilometre jumps.
+    private static let maxPlausibleSpeed: CLLocationSpeed = 12
+
     // MARK: - Properties
 
     weak var delegate: RunLocationTrackerDelegate?
@@ -119,13 +124,22 @@ extension RunLocationTracker: CLLocationManagerDelegate {
         var distanceChanged = false
 
         for location in locations where isAcceptable(location) {
-            if startLocation == nil {
-                startLocation = location
-            }
-
             if let lastLocation = lastLocation {
-                totalDistanceMeters += location.distance(from: lastLocation)
-                distanceChanged = true
+                let segment = location.distance(from: lastLocation)
+                let elapsed = location.timestamp.timeIntervalSince(lastLocation.timestamp)
+
+                // Reject an implausibly fast jump - a GPS glitch, or the simulator
+                // teleporting the location. Keep tracking from the new point, but
+                // do not count the jump itself as distance run.
+                if elapsed > 0, segment / elapsed <= RunLocationTracker.maxPlausibleSpeed {
+                    // The run starts where real movement first begins, not at a
+                    // stale opening fix that later gets jumped away from.
+                    if startLocation == nil {
+                        startLocation = lastLocation
+                    }
+                    totalDistanceMeters += segment
+                    distanceChanged = true
+                }
             }
 
             lastLocation = location
