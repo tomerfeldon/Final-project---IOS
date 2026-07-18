@@ -1,163 +1,215 @@
-# RunTracker
+# 🏃 RunTracker
 
-A running tracker for iOS. Start a run, watch time and distance update live from
-GPS, save it, and browse your history.
+A running tracker for iOS. Start a run and watch your time and distance climb
+live from GPS, save it when you are done, and browse every run you have logged.
 
-Built with UIKit + Storyboard, Swift, iOS 15+.
+Built with **UIKit + Storyboard**, **Swift**, targeting **iOS 15+**, and backed
+by **two Firebase databases** — Cloud Firestore for permanent run history and
+the Realtime Database for the live, in-progress session.
 
-## Course requirements covered
+> [!NOTE]
+> This is an iOS course final project. The scope is deliberately focused: a
+> clean, working implementation of a real feature set rather than a large app.
 
-| Requirement | Where |
+## Features
+
+- **Live run tracking** — elapsed time updated every second by a `Timer`, and
+  cumulative distance computed from GPS with jitter and teleport filtering.
+- **Start / Pause / Stop** — pause and resume freely; Stop asks before saving.
+- **Permanent history** — every finished run is stored in Firestore and shown in
+  a table with a custom cell (date, distance, duration, average pace).
+- **Live listener** — the list updates itself the instant a run is saved,
+  deleted, or edited, with no manual refresh.
+- **Run details** — a full breakdown per run, a map with start/finish pins, and
+  an editable free-text note saved back to Firestore.
+- **Resume a run** — if the app is closed mid-run, it offers to pick the run
+  back up on next launch, restored from the Realtime Database.
+- **Light / Dark toggle** — a one-tap switch in the navigation bar, remembered
+  between launches, on top of full system-appearance support.
+- **Rotation** — every screen lays out correctly in portrait and landscape via
+  Auto Layout and stack views.
+
+## Screens
+
+| Screen | What it does |
 |---|---|
-| Table View + custom cell | `RunsListController`, `Views/RunCell.swift` |
-| Firestore | `Services/RunStore.swift` - run history |
-| Realtime Database | `Services/ActiveRunStore.swift` - live session |
-| Dark Mode | Semantic colors throughout + `AccentGreen` color set |
-| Screen rotation | Auto Layout + stack views; axis flips on the active run screen |
-| Location | `Services/RunLocationTracker.swift` (`CLLocationManager`) |
-| Timers | `ActiveRunController` (`Timer`, 1 Hz) |
+| **My Runs** (`RunsListController`) | The run history, newest first. Tap a run for details, swipe to delete, or tap **New Run**. A sun/moon button toggles light/dark. |
+| **Active Run** (`ActiveRunController`) | Live time, distance, and pace. Start / Pause / Stop. Writes the live session to the Realtime Database every second. |
+| **Run Details** (`RunDetailController`) | All stats for one run, a map of the route endpoints, and an editable note. |
 
-## Setup
+## Tech stack
 
-You need a Mac with Xcode. Follow these in order - **steps 2 and 3 must happen
-before step 4**, or the downloaded plist will be missing its `DATABASE_URL` key
-and the Realtime Database will fail at runtime with what looks like a code bug.
+- **Language:** Swift
+- **UI:** UIKit + Storyboard, Auto Layout (stack-view based)
+- **Location:** Core Location (`CLLocationManager`)
+- **Maps:** MapKit (`MKMapView`)
+- **Backend:** Firebase — `FirebaseCore`, `FirebaseFirestore`, `FirebaseDatabase`
+- **Dependencies:** Swift Package Manager
+- **Minimum iOS:** 15.0
 
-### Firebase console setup
+## Project structure
 
-1. Go to <https://console.firebase.google.com> → **Add project** → name it
-   `RunTracker`. Google Analytics is not needed; turn it off.
-2. **Build → Firestore Database → Create database** → start in **test mode** →
-   pick a region close to you.
-3. **Build → Realtime Database → Create database** → start in **test mode**.
-   *(Do this before the next step.)*
-4. Project overview → **Add app → iOS**. Bundle ID: `com.tomer.RunTracker`.
-   Download `GoogleService-Info.plist`. Skip the rest of the console's wizard -
-   the SDK setup is already done in this repo.
+```
+RunTracker/
+├── AppDelegate.swift            Firebase bootstrap + friendly missing-plist guard
+├── SceneDelegate.swift          Window setup
+├── Model/
+│   ├── Run.swift                A saved run: dictionary round-trip + display formatting
+│   └── ActiveRunSession.swift   The live in-progress session (Realtime DB payload)
+├── Services/
+│   ├── RunStore.swift           Firestore: listen / add / delete / update note
+│   ├── ActiveRunStore.swift     Realtime DB: write tick / read / clear
+│   └── RunLocationTracker.swift CLLocationManager wrapper → filtered distance
+├── Controllers/
+│   ├── RunsListController.swift  Table view + theme toggle
+│   ├── ActiveRunController.swift Timer + location + live session
+│   ├── RunDetailController.swift Stats, map, note editing
+│   └── SetupRequiredController.swift  Shown only if the plist is missing
+├── Views/
+│   └── RunCell.swift            Custom cell + RunCellDelegate protocol
+├── Extensions/
+│   └── Extensions.swift         Toast, formatting, validation, AppTheme
+└── Base.lproj/
+    ├── Main.storyboard
+    └── LaunchScreen.storyboard
+```
 
-> Test mode leaves both databases open to the world and the rules expire after
-> 30 days. That is fine for coursework. If reads suddenly start failing a month
-> from now, this is why.
+The three `Services/` classes keep each controller focused: the controller owns
+its screen, the service owns one database or sensor. Communication between the
+custom cell and its controller uses the delegate/protocol pattern
+(`RunCellDelegate`).
 
-### Xcode project setup
+## Getting started
 
-5. **File → New → Project → iOS → App**
-   - Product Name: `RunTracker`
-   - Interface: **Storyboard**
-   - Language: **Swift**
-   - Bundle Identifier: must match step 4 (`com.tomer.RunTracker`)
+You need a **Mac with Xcode**. The steps below have a hard ordering — read the
+callouts.
 
-   Then in the target's **General** tab, set **Minimum Deployments** to **iOS 15.0**.
+### Prerequisites
 
-6. **Delete the template's files first.** This repo ships its own versions of
-   most of them, and leaving both in place gives you duplicate-symbol errors
-   (`invalid redeclaration of 'AppDelegate'`). In the project navigator, select
-   all of these and **Move to Trash**:
+- Xcode 15 or newer (see the Firebase version note below for Xcode 16.2)
+- A free [Firebase](https://console.firebase.google.com) project
 
-   - `AppDelegate.swift`
-   - `SceneDelegate.swift`
-   - `ViewController.swift`
-   - `Main.storyboard`
-   - `LaunchScreen.storyboard`
-   - `Assets.xcassets`
+### 1. Firebase console
 
-   The `RunTracker` group should now be empty.
+> [!IMPORTANT]
+> Create **both** databases **before** you register the iOS app. The
+> `DATABASE_URL` key is only written into `GoogleService-Info.plist` if the
+> Realtime Database already exists — otherwise the app fails at runtime in a way
+> that looks like a code bug.
 
-7. In Finder, open this repo's `RunTracker/` folder and select **everything
-   inside it** - `AppDelegate.swift`, `SceneDelegate.swift`, `Assets.xcassets`,
-   `Base.lproj`, `Controllers`, `Extensions`, `Model`, `Services`, `Views`.
-   Drag that selection onto the empty `RunTracker` group in Xcode. In the sheet:
-   - *Copy items if needed* - checked
-   - *Create groups* - selected
-   - *Add to targets: RunTracker* - checked
+1. **Add project** → name it `RunTracker` (Google Analytics not needed).
+2. **Build → Firestore Database → Create database** → **test mode** → pick a region.
+3. **Build → Realtime Database → Create database** → **test mode**.
+4. **Add app → iOS**, bundle ID `com.tomer.RunTracker`, download
+   `GoogleService-Info.plist`.
 
-   Drag your real `GoogleService-Info.plist` in the same way. Do **not** rename
-   `GoogleService-Info.SAMPLE.plist` - it is only there as a reference and
-   Firebase ignores it.
+> [!NOTE]
+> Test mode leaves both databases open and its rules expire after 30 days. That
+> is fine for coursework — if reads start failing weeks later, this is why.
 
-   If the app builds but launches to a black screen, the storyboard did not make
-   it into the target: select `Main.storyboard` and check *Target Membership* in
-   the File inspector on the right.
+### 2. Xcode project
 
-8. **File → Add Package Dependencies** → paste
-   `https://github.com/firebase/firebase-ios-sdk` → **Add Package**.
-   When asked which products to add, check exactly these three:
-   - `FirebaseCore`
-   - `FirebaseFirestore`
-   - `FirebaseDatabase`
+1. **File → New → Project → iOS → App.** Product Name `RunTracker`, Interface
+   **Storyboard**, Language **Swift**, bundle ID `com.tomer.RunTracker`. Set the
+   deployment target to **iOS 15.0**.
+2. **Delete the template files first** — this repo ships its own. Select and
+   **Move to Trash**: `AppDelegate.swift`, `SceneDelegate.swift`,
+   `ViewController.swift`, `Main.storyboard`, `LaunchScreen.storyboard`,
+   `Assets.xcassets`. Leaving them causes `invalid redeclaration` errors.
+3. Add this repo's source. Drag `Model`, `Services`, `Controllers`, `Views`,
+   `Extensions`, `Assets.xcassets`, and `AppDelegate.swift` / `SceneDelegate.swift`
+   into the empty `RunTracker` group (*Copy items if needed*, *Create groups*,
+   target checked).
 
-   The first resolve downloads a lot and can take several minutes. If it fails,
-   **File → Packages → Reset Package Caches** and retry.
+   > [!WARNING]
+   > Add the two storyboards as **individual files**, not by dragging the whole
+   > `Base.lproj` folder. A new project already has a `Base.lproj`, and dragging
+   > another one in creates a stray `Base 2.lproj` that the app cannot find —
+   > you will get a runtime crash `Could not find a storyboard named 'Main'`.
+   > Drag `Main.storyboard` and `LaunchScreen.storyboard` in on their own.
 
-   > **Xcode 16.2 users:** Firebase 12.15.0+ requires Swift tools 6.1 (Xcode
-   > 16.3+) and will fail to resolve. In the Add Package dialog, set the
-   > Dependency Rule to **Up to Next Major Version** starting from **11.0.0** so
-   > it picks a Firebase 11.x release. The APIs used here are identical in 11.x.
-   >
-   > When you pick products, select **only** `FirebaseCore`,
-   > `FirebaseFirestore`, and `FirebaseDatabase` (the list scrolls — they are
-   > below the `FirebaseAnalytics*` entries alphabetically). Set every other
-   > product's target to **None**.
+4. Drag your real `GoogleService-Info.plist` in (target checked). Do **not**
+   rename `GoogleService-Info.SAMPLE.plist` — it is a reference only.
+5. **File → Add Package Dependencies** → `https://github.com/firebase/firebase-ios-sdk`.
+   Add exactly `FirebaseCore`, `FirebaseFirestore`, `FirebaseDatabase`.
 
-9. Add the Info keys. Modern Xcode has no `Info.plist` file in the navigator -
-   the keys live in the target's **Info** tab instead, which writes them into
-   the generated `Info.plist` at build time. Go to **target → Info** and add:
+   > [!IMPORTANT]
+   > **On Xcode 16.2 or older,** Firebase 12.15+ requires a newer toolchain and
+   > will fail to resolve. In the Add Package dialog set the Dependency Rule to
+   > **Up to Next Major Version** from **11.0.0** to pull a Firebase 11.x
+   > release. The APIs used here are identical. When picking products, set every
+   > product except the three above to **None** (the list scrolls — the three
+   > are below the `FirebaseAnalytics*` entries).
 
-   | Key | Value |
-   |---|---|
-   | `Privacy - Location When In Use Usage Description` | `RunTracker uses your location to measure the distance of your runs.` |
+6. **Target → Info** → add **Privacy - Location When In Use Usage Description**
+   (`NSLocationWhenInUseUsageDescription`) with a value such as
+   `RunTracker uses your location to measure the distance of your runs.` Without
+   it, iOS silently refuses the permission prompt.
+7. **Target → General → Device Orientation:** enable Portrait, Landscape Left,
+   and Landscape Right.
+8. **Build and run.**
 
-   (If your Xcode version *does* show an `Info.plist` file, add the same key
-   there instead. The raw key name is `NSLocationWhenInUseUsageDescription`.)
+> [!TIP]
+> The simulator's GPS is synthetic. To make distance move, choose
+> **Features → Location → City Run** in the simulator, then press Start.
 
-10. **Target → General → Device Orientation**: enable **Portrait**,
-    **Landscape Left**, and **Landscape Right** for iPhone.
+## How it works: two databases, on purpose
 
-11. Build and run.
+The point of the project is using each database for what it is good at.
 
-## Firebase data structure
-
-**Firestore** - permanent run history:
+**Cloud Firestore** — permanent, queryable run history:
 
 ```
 runs/
   <auto-id>/
-    date: Timestamp
-    distanceMeters: Double
-    durationSeconds: Int
-    averagePaceSecPerKm: Double
-    startLat, startLng: Double
-    endLat, endLng: Double
-    note: String
+    date, distanceMeters, durationSeconds, averagePaceSecPerKm,
+    startLat, startLng, endLat, endLng, note
 ```
 
-Read with `addSnapshotListener`, so the list updates itself the moment a run is
-saved - no manual refresh.
+Read with `addSnapshotListener`, so the list re-renders the moment anything
+changes — no manual refresh, one source of truth.
 
-**Realtime Database** - the live session only, while a run is in progress:
+**Realtime Database** — the live session only, while a run is in progress:
 
 ```
 activeRun/
-  isActive: Bool
-  elapsedSeconds: Int
-  distanceMeters: Double
-  startTimestamp: Double
+  isActive, elapsedSeconds, distanceMeters, startTimestamp
 ```
 
-Written every second, and removed with `removeValue()` when the run ends. On
-launch, if `isActive` is true, the app offers to resume the run.
+Overwritten every second during a run and removed with `removeValue()` when it
+ends. On launch, if `isActive` is `true`, the app offers to resume.
 
-The split is the point: Firestore holds queryable records you keep, the Realtime
-Database holds fast-changing throwaway state.
+> A small, hot, throwaway value written many times a second is exactly what the
+> Realtime Database is built for; durable records you keep and query are what
+> Firestore is built for. That is why both are here.
+
+Two implementation details worth calling out:
+
+- **The clock is derived from dates, not counted.** `Timer` makes no real-time
+  guarantees, so elapsed time is computed as `Date().timeIntervalSince(start)` on
+  each tick. The timer only triggers a refresh; it is never the source of truth.
+- **GPS is filtered.** Fixes that are inaccurate, stale, or imply an
+  implausible speed (a signal glitch or a simulator teleport) are rejected, so
+  standing still does not invent distance and a jump does not add kilometres.
+
+## Course requirements
+
+| Requirement | Where |
+|---|---|
+| Table View + custom cell | `RunsListController`, `Views/RunCell.swift` |
+| Firestore | `Services/RunStore.swift` |
+| Realtime Database | `Services/ActiveRunStore.swift` |
+| Location | `Services/RunLocationTracker.swift` |
+| Timers | `ActiveRunController` |
+| Dark Mode | Semantic colors + `AccentGreen` color set + manual toggle (`AppTheme`) |
+| Screen rotation | Auto Layout + stack views; the active-run stats reflow in landscape |
+| Delegate pattern | `RunCellDelegate` between the cell and its controller |
 
 ## Known limitations
 
-- **No background location.** The app only requests "when in use", so tracking
-  pauses if you leave the app mid-run. Continuous background tracking needs the
-  Background Modes capability and an "always" permission prompt, which is beyond
-  this project's scope.
-- **Simulator GPS is synthetic.** For a moving distance, use
-  **Features → Location → City Run** in the simulator. Real accuracy needs a
-  physical device.
-- **No authentication.** All runs live in one shared collection. Adding Firebase
-  Auth and scoping runs per-user would be the natural next step.
+- **No background location.** The app requests "when in use" only, so tracking
+  pauses if you leave it mid-run. Continuous tracking would need the Background
+  Modes capability and an "always" prompt, beyond this project's scope.
+- **No authentication.** All runs share one collection. Firebase Auth and
+  per-user scoping would be the natural next step.
+- **Simulator GPS is synthetic.** Real accuracy needs a physical device.
