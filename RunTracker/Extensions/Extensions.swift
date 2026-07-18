@@ -14,7 +14,7 @@ extension Int {
     /// Seconds rendered as a clock string: "32:15", or "1:02:15" past an hour.
     /// Used for both run duration and pace, so the two always read the same way.
     var asClockString: String {
-        let safeValue = max(0, self)
+        let safeValue = Swift.max(0, self)
         let hours = safeValue / 3600
         let minutes = (safeValue % 3600) / 60
         let seconds = safeValue % 60

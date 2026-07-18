@@ -37,7 +37,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="90" sectionHeaderHeight="18" sectionFooterHeight="18" translatesAutoresizingMaskIntoConstraints="NO" id="runs-table">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="90" sectionHeaderHeight="18" sectionFooterHeight="18" translatesAutoresizingMaskIntoConstraints="NO" id="runs-table">
                                 <rect key="frame" x="0.0" y="103" width="393" height="715"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
@@ -138,7 +138,7 @@
                     </view>
                     <navigationItem key="navigationItem" title="My Runs" largeTitleDisplayMode="always" id="list-nav-item">
                         <rightBarButtonItems>
-                            <barButtonItem title="New Run" style="plain" id="new-run-item">
+                            <barButtonItem title="New Run" id="new-run-item">
                                 <connections>
                                     <segue destination="active-vc" kind="show" identifier="showActiveRun" id="segue-new-run"/>
                                 </connections>

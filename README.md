@@ -89,6 +89,16 @@ and the Realtime Database will fail at runtime with what looks like a code bug.
    The first resolve downloads a lot and can take several minutes. If it fails,
    **File → Packages → Reset Package Caches** and retry.
 
+   > **Xcode 16.2 users:** Firebase 12.15.0+ requires Swift tools 6.1 (Xcode
+   > 16.3+) and will fail to resolve. In the Add Package dialog, set the
+   > Dependency Rule to **Up to Next Major Version** starting from **11.0.0** so
+   > it picks a Firebase 11.x release. The APIs used here are identical in 11.x.
+   >
+   > When you pick products, select **only** `FirebaseCore`,
+   > `FirebaseFirestore`, and `FirebaseDatabase` (the list scrolls — they are
+   > below the `FirebaseAnalytics*` entries alphabetically). Set every other
+   > product's target to **None**.
+
 9. Add the Info keys. Modern Xcode has no `Info.plist` file in the navigator -
    the keys live in the target's **Info** tab instead, which writes them into
    the generated `Info.plist` at build time. Go to **target → Info** and add:
