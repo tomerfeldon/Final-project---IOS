@@ -33,6 +33,8 @@ class RunsListController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
+        setupThemeButton()
+        AppTheme.apply()
         startListeningForRuns()
     }
 
@@ -69,6 +71,33 @@ class RunsListController: UIViewController {
         let isEmpty = runs.isEmpty
         emptyStateLabel.isHidden = !isEmpty
         tableView.isHidden = isEmpty
+    }
+
+    // MARK: - Theme Toggle
+
+    private var themeButton: UIBarButtonItem?
+
+    /// Added in code rather than in the storyboard - one fewer outlet to wire,
+    /// and it keeps the toggle logic next to the button it belongs to.
+    private func setupThemeButton() {
+        let button = UIBarButtonItem(image: themeIcon(),
+                                     style: .plain,
+                                     target: self,
+                                     action: #selector(toggleTheme))
+        navigationItem.leftBarButtonItem = button
+        themeButton = button
+    }
+
+    /// The icon shows where a tap will take you: a sun while dark, a moon while
+    /// light. So it always points at the mode you are about to switch to.
+    private func themeIcon() -> UIImage? {
+        let name = AppTheme.isDark ? "sun.max.fill" : "moon.fill"
+        return UIImage(systemName: name)
+    }
+
+    @objc private func toggleTheme() {
+        AppTheme.isDark.toggle()   // setter re-themes every window
+        themeButton?.image = themeIcon()
     }
 
     // MARK: - Firestore

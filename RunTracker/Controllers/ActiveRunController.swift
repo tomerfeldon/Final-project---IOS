@@ -192,10 +192,30 @@ class ActiveRunController: UIViewController {
     @IBAction func stopButtonTapped(_ sender: UIButton) {
         guard !isSaving else { return }
 
+        // Freeze the run while the user decides, so no time or distance is
+        // recorded during the prompt.
         if state == .running {
             pauseRun()
         }
 
+        let alert = UIAlertController(title: "Finish run?",
+                                      message: "Save this run to your history?",
+                                      preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Save Run", style: .default) { [weak self] _ in
+            self?.finishRun()
+        })
+        alert.addAction(UIAlertAction(title: "Discard", style: .destructive) { [weak self] _ in
+            self?.discardRun()
+        })
+        alert.addAction(UIAlertAction(title: "Keep Running", style: .cancel) { [weak self] _ in
+            // A mistaken Stop - pick the run back up exactly where it froze.
+            self?.beginSegment()
+        })
+        present(alert, animated: true)
+    }
+
+    /// Saves the run, or discards it if nothing was actually recorded.
+    private func finishRun() {
         let run = currentRunSnapshot
         guard run.durationSeconds > 0 else {
             discardRun()

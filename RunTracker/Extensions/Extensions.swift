@@ -26,6 +26,45 @@ extension Int {
     }
 }
 
+// MARK: - App Theme (Light / Dark override)
+
+/// A manual light/dark switch that overrides the system setting for the whole
+/// app. The choice is stored in UserDefaults so it survives relaunches.
+enum AppTheme {
+
+    private static let key = "prefersDarkMode"
+
+    /// True when the user has chosen dark. On first launch - before any choice -
+    /// this follows whatever the system is set to, so nothing jumps on screen.
+    static var isDark: Bool {
+        get {
+            let defaults = UserDefaults.standard
+            if defaults.object(forKey: key) == nil {
+                return UITraitCollection.current.userInterfaceStyle == .dark
+            }
+            return defaults.bool(forKey: key)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: key)
+            apply()
+        }
+    }
+
+    static var interfaceStyle: UIUserInterfaceStyle {
+        return isDark ? .dark : .light
+    }
+
+    /// Forces the chosen style on every window. Because every colour in the app
+    /// is semantic, this one line re-themes all three screens at once.
+    static func apply() {
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            for window in scene.windows {
+                window.overrideUserInterfaceStyle = interfaceStyle
+            }
+        }
+    }
+}
+
 // MARK: - String (Validation)
 
 extension String {
